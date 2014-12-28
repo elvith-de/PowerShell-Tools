@@ -7,7 +7,7 @@ Hint: Schedule script in the task scheduler to download newly published talks
  
 Prerequisites: Powershell v3.0, uses default proxy, if set
  
-Before Executing: change $dst to an existing folder where the talks should be downloaded
+Before Executing: change $dst to an existing folder where the talks should be downloaded, optional change $src and $filter when other version than HD is desired
 #>
  
 $src = "http://cdn.media.ccc.de/congress/2014/h264-hd/"
