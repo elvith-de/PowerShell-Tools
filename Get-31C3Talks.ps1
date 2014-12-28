@@ -1,5 +1,5 @@
 <#
-Code-Snippet to download all (published) 30C3 recordings with Windows Powershell
+Code-Snippet to download all (published) 31C3 recordings with Windows Powershell
 Script will download the talks using BITS. Download will only use free bandwidth
 and shouldn't therefore interfere with the stream, etc.
  
@@ -10,17 +10,19 @@ Prerequisites: Powershell v3.0, uses default proxy, if set
 Before Executing: change $dst to an existing folder where the talks should be downloaded
 #>
  
-$src = "http://cdn.media.ccc.de/congress/2013/mp4/"
-$dst = 'D:\30C3\'
+$src = "http://cdn.media.ccc.de/congress/2014/h264-hd/"
+$dst = 'D:\31C3\'
+$filter = "31C3-*_hd.mp4"
+$transferName = "31C3 Talks"
  
  
 # Collect available talks
-$published = (Invoke-WebRequest $src).Links | ? href -like "30C3-*_h264-hq.mp4" | select href
+$published = (Invoke-WebRequest $src).Links | ? href -like $filter | select href
  
 Write-Debug "Available Talks"
 $published | %{Write-Debug $_.href}
 # Collect all downloaded talks
-$local = Get-ChildItem $dst | ? name -like "30C3-*_h264-hq.mp4" | % {$_.name}
+$local = Get-ChildItem $dst | ? name -like $filter | % {$_.name}
  
  
 Write-Debug "Downloaded Talks"
@@ -34,7 +36,7 @@ Write-Debug "To Be Downloaded"
 $tbd | %{Write-Debug $_.href}
  
 # Check if a transfer is running in background
-$transfer = Get-BitsTransfer -Name "30C3 Talks" -ErrorAction SilentlyContinue
+$transfer = Get-BitsTransfer -Name $transferName -ErrorAction SilentlyContinue
  
 # build links and local filenames
 $links = $tbd | %{"{0}{1}" -f $src,$_.href}
@@ -46,7 +48,7 @@ $links | %{Write-Debug $_}
 if ($transfer -eq $null){      
         # Download all teh talkz!
         if(($links -ne $null) -and ($localfiles -ne $null)){
-                Start-BitsTransfer -DisplayName "30C3 Talks" -Source $links -Destination $localfiles -Priority High -Description "Please wait while downloading..."
+                Start-BitsTransfer -DisplayName $transferName -Source $links -Destination $localfiles -Priority High -Description "Please wait while downloading..."
         }
 }
 # transfer is running
