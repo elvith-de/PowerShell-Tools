@@ -1,12 +1,16 @@
 <#
 .SYNOPSIS
-   <A brief description of the script>
+  Function to copy NEW files to a backup. Existing files will be ignored, either changed or unchanged. Only files 
+  that do NOT exist in the destination will be copied.
+  Useful for data that is written once but rarely to never changed (eg. collection of mp3 files) to speed up the backup process
 .DESCRIPTION
-   <A detailed description of the script>
-.PARAMETER <paramName>
-   <Description of script parameter>
+   Did I already mention, that only files that do NOT exist in the destination will be copied?
+.PARAMETER SourceDir
+   Specifies which directory is used as source
+.PARAMETER DestinationDir
+   Specifies which directory is used as destination
 .EXAMPLE
-   <An example of using the script>
+   Copy-BackupDelta -SourceDir C:\MP3\ -DestinationDir \\NAS\music\
 #>
 
 function Copy-BackupDelta{
