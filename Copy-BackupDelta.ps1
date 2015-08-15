@@ -18,8 +18,8 @@ function Copy-BackupDelta{
 param(
 [Parameter(Mandatory=$true)]
 [String]
-<#[ValidateScript({#Must be an existing directory 
-					(Test-Path $_.Fullname) -and ($_.PSISContainer)})]#>
+[ValidateScript({#Must be an existing directory 
+					(Test-Path $_.Fullname) -and ($_.PSISContainer)})]
 $SourceDir,
 [Parameter(Mandatory=$true)]
 [String]
@@ -27,6 +27,11 @@ $SourceDir,
 					(Test-Path $_.Fullname) -and ($_.PSISContainer)})]#>
 $DestinationDir
 )	
+	if (-not($DestinationDir.endsWith("\"))){
+		$DestinationDir = $DestinationDir+"\"
+	}if (-not($SourceDir.endsWith("\"))){
+		$SourceDir = $SourceDir+"\"
+	}
 	Get-ChildItem $SourceDir -Recurse | ForEach-Object {
 		$src = $_.FullName
 		$dst = $src.Replace($SourceDir,$destinationDir)
