@@ -1,38 +1,38 @@
 <#
 .SYNOPSIS
-  Function to copy NEW files to a backup. Existing files will be ignored, either changed or unchanged. Only files 
-  that do NOT exist in the destination will be copied.
-  Useful for data that is written once but rarely to never changed (eg. collection of mp3 files) to speed up the backup process
+   <A brief description of the script>
 .DESCRIPTION
-   Did I already mention, that only files that do NOT exist in the destination will be copied?
-.PARAMETER SourceDir
-   Specifies which directory is used as source
-.PARAMETER DestinationDir
-   Specifies which directory is used as destination
+   <A detailed description of the script>
+.PARAMETER <paramName>
+   <Description of script parameter>
 .EXAMPLE
-   Copy-BackupDelta -SourceDir C:\MP3\ -DestinationDir \\NAS\music\
+   <An example of using the script>
 #>
 
 function Copy-BackupDelta{
-[Cmdletbinding()]
-param(
-[Parameter(Mandatory=$true)]
-[String]
-[ValidateScript({#Must be an existing directory 
-					(Test-Path $_.Fullname) -and ($_.PSISContainer)})]
-$SourceDir,
-[Parameter(Mandatory=$true)]
-[String]
-<#[ValidateScript({#Must be an existing directory 
-					(Test-Path $_.Fullname) -and ($_.PSISContainer)})]#>
-$DestinationDir
-)	
+	[Cmdletbinding()]
+	
+	param(
+	[Parameter(Mandatory=$true)]
+	[String]
+	<#[ValidateScript({#Must be an existing directory 
+						(Test-Path $_.Fullname) -and ($_.PSISContainer)})]#>
+	$SourceDir,
+	[Parameter(Mandatory=$true)]
+	[String]
+	<#[ValidateScript({#Must be an existing directory 
+						(Test-Path $_.Fullname) -and ($_.PSISContainer)})]#>
+	$DestinationDir,
+	[Switch]
+	$VerifyHash
+	)	
+	
 	if (-not($DestinationDir.endsWith("\"))){
 		$DestinationDir = $DestinationDir+"\"
 	}if (-not($SourceDir.endsWith("\"))){
 		$SourceDir = $SourceDir+"\"
 	}
-	Get-ChildItem $SourceDir -Recurse | ForEach-Object {
+	Get-ChildItem $SourceDir -Recurse -Force | ForEach-Object {
 		$src = $_.FullName
 		$dst = $src.Replace($SourceDir,$destinationDir)
 		if($_.PSISContainer){
@@ -45,8 +45,28 @@ $DestinationDir
 				Write-Host "Creating directory $dst"
 				New-Item -ItemType directory $dst 
 			} else {
-				Write-Host "Copying $src to $dst"
-				Copy-Item $src $dst 
+				$count=0
+				$hashOK=$false
+				while(-not $hashOK){
+					Write-Host ("Copying $src to $dst ({0:N2} MB)" -f ($_.Length/1MB))
+					Copy-Item $src $dst 
+					if ($VerifyHash){
+						$hashSrc = Get-FileHash -Path $src -Algorithm SHA256
+						$hashDst = Get-FileHash -Path $dst -Algorithm SHA256
+						if ($hashSrc.Hash -eq $hashDst.Hash){
+							$hashOK = $true
+							#Write-Host ("File Hashes match SRC={0} DST={1}" -f $hashSrc.Hash,$hashDst.Hash)
+						}else{
+							Write-Error ("File Hashes do not match! SRC={0} DST={1}" -f $hashSrc.Hash,$hashDst.Hash)
+							$count = $count+1
+							if($count -gt 10){
+								throw ("File Hashes do not match! SRC={0} DST={1}" -f $hashSrc.Hash,$hashDst.Hash)
+							}
+						}
+					}else{
+						$hashOK = $true
+					}
+				}
 			}
 		}
 	}
